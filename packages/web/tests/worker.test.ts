@@ -248,3 +248,31 @@ describe('DotLottieWorker.setWasmUrl', () => {
     expect(setWasmUrlPosts(postSpy)).toHaveLength(0);
   });
 });
+
+describe('DotLottieWorker.setWorkerUrl', () => {
+  afterEach(() => {
+    delete (globalThis as Record<string, unknown>).__dotLottieWorkerUrl;
+  });
+
+  test('sets globalThis.__dotLottieWorkerUrl so the InlineWorker uses a static URL', () => {
+    DotLottieWorker.setWorkerUrl('/workers/dotlottie.worker.js');
+
+    expect((globalThis as Record<string, unknown>).__dotLottieWorkerUrl).toBe('/workers/dotlottie.worker.js');
+  });
+
+  test('rejects empty and non-string URLs', () => {
+    expect(() => DotLottieWorker.setWorkerUrl('')).toThrow(TypeError);
+    expect(() => DotLottieWorker.setWorkerUrl('   ')).toThrow(TypeError);
+    expect(() => DotLottieWorker.setWorkerUrl(undefined as unknown as string)).toThrow(TypeError);
+    expect(() => DotLottieWorker.setWorkerUrl(42 as unknown as string)).toThrow(TypeError);
+
+    expect((globalThis as Record<string, unknown>).__dotLottieWorkerUrl).toBeUndefined();
+  });
+
+  test('overwrites a previously set URL', () => {
+    DotLottieWorker.setWorkerUrl('/first.js');
+    DotLottieWorker.setWorkerUrl('/second.js');
+
+    expect((globalThis as Record<string, unknown>).__dotLottieWorkerUrl).toBe('/second.js');
+  });
+});
