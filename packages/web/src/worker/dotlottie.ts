@@ -95,6 +95,7 @@ function createRpcRequest<T extends keyof MethodParamsMap>(method: T, params: Me
 }
 
 let workerWasmUrl = '';
+let workerScriptUrl = '';
 
 const canvasRegistry = new Map<HTMLCanvasElement, CanvasRegistryEntry>();
 
@@ -1149,6 +1150,28 @@ export class DotLottieWorker {
 
     // The constructor only forwards this to workers created after the call.
     workerManager().broadcastMessage(createRpcRequest('setWasmUrl', { url: workerWasmUrl }));
+  }
+
+  /**
+   * Point the worker to a self-hosted copy of `dotlottie.worker.js` so the
+   * library creates `new Worker(url)` instead of a `blob:` URL.
+   *
+   * This is required when the page's Content-Security-Policy does not allow
+   * `worker-src: blob:`. Call this before creating any `DotLottieWorker`
+   * instances — workers already running are unaffected.
+   *
+   * The file is shipped as `@lottiefiles/dotlottie-web/dotlottie.worker.js`
+   * and can be copied to any origin the CSP permits.
+   *
+   * @param url - URL pointing to the self-hosted worker script
+   */
+  public static setWorkerUrl(url: string): void {
+    if (typeof url !== 'string' || url.trim() === '') {
+      throw new TypeError('setWorkerUrl() expects a non-empty URL string');
+    }
+
+    workerScriptUrl = url;
+    (globalThis as Record<string, unknown>).__dotLottieWorkerUrl = url;
   }
 
   /**

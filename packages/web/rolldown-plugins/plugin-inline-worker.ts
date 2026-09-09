@@ -70,6 +70,10 @@ export function pluginInlineWorker(pkg: { name: string; version: string }): Roll
                   if (typeof Worker === 'undefined') {
                     throw new Error('Worker is not supported in this environment.');
                   }
+                  const customUrl = typeof globalThis !== 'undefined' && globalThis.__dotLottieWorkerUrl;
+                  if (customUrl) {
+                    return new Worker(customUrl);
+                  }
                   const blob = new Blob([workerCode], { type: 'application/javascript' });
                   const url = URL.createObjectURL(blob);
                   const worker = new Worker(url);
